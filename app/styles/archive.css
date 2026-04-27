@@ -680,6 +680,10 @@ body {
 }
 
 @media (max-width: 768px) {
+  .mit-section {
+    padding: 25px 0;
+  }
+
   .utility-nav {
     display: none;
   }
