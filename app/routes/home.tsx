@@ -12,7 +12,8 @@ export function meta() {
 const STUDENT_DB: Record<string, any> = {
   "M21431111194": { id: "M21431111194", regNo: "UU26793", name: "FAZLA RABBI", department: "Business Administration", degree: "Bachelor of Business Administration", cgpa: "2.54", passingYear: "2018", certificateNo: "8982", status: "Passed" },
   "F21434211011": { id: "F21434211011", regNo: "UU26713", name: "AFSANA NASRIN", department: "Physical Education", degree: "Bachelor of Physical Education", cgpa: "3.45", passingYear: "2015", certificateNo: "7712", status: "Passed" },
-  "M21435121050": { id: "M21435121050", regNo: "UU26903", name: "MD. MEHEDI HASAN", department: "Civil Engineering", degree: "B.Sc in Civil Engineering", cgpa: "2.72", passingYear: "2018", certificateNo: "10079", status: "Passed" }
+  "M21435121050": { id: "M21435121050", regNo: "UU26903", name: "MD. MEHEDI HASAN", department: "Civil Engineering", degree: "B.Sc in Civil Engineering", cgpa: "2.72", passingYear: "2018", certificateNo: "10079", status: "Passed" },
+  "10322209": { id: "10322209", regNo: "UU27011", name: "MAHEDI HASSAN SARKER", department: "Software Engineering (Fast Track)", degree: "Bachelor of Software Engineering (Honours)", cgpa: "3.92", passingYear: "2026", graduationDate: "January 3, 2026", certificateNo: "MIT-SE-2026-001", status: "Passed" }
 };
 
 export default function Home() {
@@ -301,9 +302,19 @@ export default function Home() {
                             <td className="value-cell">{studentResult.degree}</td>
                           </tr>
                           <tr>
+                            <td className="label-cell">CGPA</td>
+                            <td className="value-cell" style={{ fontWeight: "600", color: "#2D3748" }}>{studentResult.cgpa}</td>
+                          </tr>
+                          <tr>
                             <td className="label-cell">Passing Year</td>
                             <td className="value-cell">{studentResult.passingYear}</td>
                           </tr>
+                          {studentResult.graduationDate && (
+                            <tr>
+                              <td className="label-cell">Graduation Date</td>
+                              <td className="value-cell">{studentResult.graduationDate}</td>
+                            </tr>
+                          )}
                           <tr>
                             <td className="label-cell">Status</td>
                             <td className="value-cell status-passed" style={{ color: 'green', fontWeight: 'bold' }}>{studentResult.status}</td>

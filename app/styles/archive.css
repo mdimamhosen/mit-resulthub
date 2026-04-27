@@ -3,13 +3,15 @@
   --primary-dark: #cc2529;
   --secondary-blue: #1C4598;
   --header-bg: #FFFFFF;
-  --border-color: #D1D5DB;
-  --text-blue: #1D4ED8;
-  --text-dark: #333;
-  --text-light: #718096;
+  --border-color: #E2E8F0;
+  --text-blue: #2563EB;
+  --text-dark: #1E293B;
+  --text-light: #64748B;
   --bg-white: #FFFFFF;
-  --bg-page: #F8FAFC;
-  --footer-bg: #2D3748;
+  --bg-page: #F1F5F9;
+  --footer-bg: #1E293B;
+  --glass-bg: rgba(255, 255, 255, 0.8);
+  --glass-border: rgba(255, 255, 255, 0.2);
 }
 
 body {
@@ -80,10 +82,15 @@ body {
 
 .main-card {
   background: var(--bg-white);
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.main-card:hover {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 /* Top Utility Nav */
@@ -561,21 +568,26 @@ body {
 }
 
 .archive-button {
-  background-color: #fff;
-  color: var(--primary-red);
-  padding: 10px 30px;
-  border: 2px solid var(--primary-red);
-  border-radius: 6px;
+  background: linear-gradient(135deg, var(--primary-red), var(--primary-dark));
+  color: white;
+  padding: 12px 35px;
+  border: none;
+  border-radius: 8px;
   font-weight: 700;
   font-size: 16px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 6px -1px rgba(238, 49, 53, 0.2);
 }
 
 .archive-button:hover {
-  background-color: var(--primary-red);
-  color: white;
-  box-shadow: 0 4px 12px rgba(238, 49, 53, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(238, 49, 53, 0.3);
+  filter: brightness(1.1);
+}
+
+.archive-button:active {
+  transform: translateY(0);
 }
 
 /* Result Table (Legacy) */
