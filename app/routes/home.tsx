@@ -1,689 +1,518 @@
-import { useState, useEffect, type FormEvent } from "react";
-import "./../styles/archive.css";
+import { useEffect, useState, type FormEvent } from "react";
+import { Link, useNavigate } from "react-router";
+import { getSession, login } from "../lib/auth";
+import { ensureDbInitialized } from "../lib/init";
+import "../styles/login.css";
 
 export function meta() {
   return [
-    {
-      title: "Melbourne Institute of Technology | Higher Education Excellence",
-    },
+    { title: "Log in | Melbourne Institute of Technology" },
     {
       name: "description",
-      content:
-        "Expertise in Business, Accounting, IT, Networking, Engineering and Telecommunications.",
+      content: "Log in to your Melbourne Institute of Technology account.",
     },
   ];
 }
 
-// Mock Data for Result Archive
-const STUDENT_DB: Record<string, any> = {
-  M21431111194: {
-    id: "M21431111194",
-    regNo: "UU26793",
-    name: "FAZLA RABBI",
-    department: "Business Administration",
-    degree: "Bachelor of Business Administration",
-    cgpa: "2.54",
-    passingYear: "2018",
-    certificateNo: "8982",
-    status: "Passed",
+const CURRENT_STUDENTS = [
+  "AMS",
+  "Orientation",
+  "Enrolments",
+  "Academic Calendar",
+  "FEE-HELP",
+  "Library",
+  "Student Services",
+];
+
+const STUDY_WITH_US = [
+  "How to Apply",
+  "Information for Agents",
+  "Student Testimonials",
+  "International Students",
+];
+
+const INFORMATION_ABOUT = [
+  "MIT",
+  "Governance",
+  "School of Business",
+  "School of IT and Engineering",
+  "MIT Contacts",
+  "Campuses and Maps",
+  "Corporate and Social Responsibilities",
+  "Reporting Sexual Harassment",
+  "MIT's Stance Against Domestic Violence",
+  "MIT Group Foundation",
+];
+
+const CAMPUSES = {
+  melbourne: {
+    address: "288 La Trobe Street, Melbourne, VIC 3000, Australia",
+    phone: "+61 03 8600 6700",
+    email: "enquiries@mit.edu.au",
   },
-  F21434211011: {
-    id: "F21434211011",
-    regNo: "UU26713",
-    name: "AFSANA NASRIN",
-    department: "Physical Education",
-    degree: "Bachelor of Physical Education",
-    cgpa: "3.45",
-    passingYear: "2015",
-    certificateNo: "7712",
-    status: "Passed",
+  sydney: {
+    address: "154-158 Sussex Street, Sydney, NSW 2000, Australia",
+    phone: "+61 02 8267 1400",
+    email: "info.sydney@mit.edu.au",
   },
-  M21435121050: {
-    id: "M21435121050",
-    regNo: "UU26903",
-    name: "MD. MEHEDI HASAN",
-    department: "Civil Engineering",
-    degree: "B.Sc in Civil Engineering",
-    cgpa: "2.72",
-    passingYear: "2018",
-    certificateNo: "10079",
-    status: "Passed",
-  },
-  "10322209": {
-    id: "10322209",
-    regNo: "UU27011",
-    name: "MAHEDI HASSAN SARKER",
-    department: "Software Engineering (Fast Track)",
-    degree: "Bachelor of Software Engineering (Honours)",
-    cgpa: "3.64",
-    passingYear: "2026",
-    graduationDate: "January 3, 2026",
-    certificateNo: "MIT-SE-2026-001",
-    status: "Passed",
-  },
-};
+} as const;
+
+type CampusKey = keyof typeof CAMPUSES;
+
+type AriaBool = "true" | "false";
+
+function ariaExpandedAttr(expanded: boolean): { "aria-expanded": AriaBool } {
+  return expanded ? { "aria-expanded": "true" } : { "aria-expanded": "false" };
+}
+
+function ariaSelectedAttr(selected: boolean): { "aria-selected": AriaBool } {
+  return selected ? { "aria-selected": "true" } : { "aria-selected": "false" };
+}
+
+function LockIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden width="16" height="16">
+      <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1s3.1 1.39 3.1 3.1v2z" />
+    </svg>
+  );
+}
+
+function UserIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden width="18" height="18">
+      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+    </svg>
+  );
+}
+
+function SearchIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
+      <circle cx="11" cy="11" r="8" />
+      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+    </svg>
+  );
+}
+
+function MenuIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" />
+    </svg>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+    </svg>
+  );
+}
+
+function FooterLinks({ title, items }: { title: string; items: string[] }) {
+  return (
+    <div className="footer-col">
+      <h3>{title}</h3>
+      <ul>
+        {items.map((item) => (
+          <li key={item}>
+            <a href="#">{item}</a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 export default function Home() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [view, setView] = useState<"search" | "loading" | "result">("search");
-  const [studentId, setStudentId] = useState("");
-  const [studentResult, setStudentResult] = useState<any>(null);
-  const [progress, setProgress] = useState(0);
-  const [loadingMessage, setLoadingMessage] = useState(
-    "Securly connecting to MIT database...",
-  );
+  const navigate = useNavigate();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<"login" | "reset">("login");
+  const [campusOpen, setCampusOpen] = useState(false);
+  const [quickLinksOpen, setQuickLinksOpen] = useState(false);
+  const [activeCampus, setActiveCampus] = useState<CampusKey>("melbourne");
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [resetEmail, setResetEmail] = useState("");
+  const [loginError, setLoginError] = useState("");
+  const [authReady, setAuthReady] = useState(false);
 
-  const loadingMessages = [
-    "Securly connecting to MIT database...",
-    "Authenticating student profile...",
-    "Retrieving academic records...",
-    "Verifying transcript authenticity...",
-    "Finalizing report generation...",
-  ];
+  const campus = CAMPUSES[activeCampus];
 
-  const handleSearch = (e: FormEvent) => {
+  useEffect(() => {
+    ensureDbInitialized().then(() => {
+      if (getSession()) navigate("/portal", { replace: true });
+      setAuthReady(true);
+    });
+  }, [navigate]);
+
+  useEffect(() => {
+    const onScroll = () => setShowScrollTop(window.scrollY > 400);
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
-    if (!studentId.trim()) return;
-
-    setView("loading");
-    setProgress(0);
-    setLoadingMessage(loadingMessages[0]);
-
-    const duration = 5000;
-    const intervalTime = 100;
-    const steps = duration / intervalTime;
-    let currentStep = 0;
-
-    const interval = setInterval(() => {
-      currentStep++;
-      const nextProgress = (currentStep / steps) * 100;
-      setProgress(nextProgress);
-
-      const msgIndex = Math.min(
-        Math.floor((currentStep / steps) * loadingMessages.length),
-        loadingMessages.length - 1,
-      );
-      setLoadingMessage(loadingMessages[msgIndex]);
-
-      if (currentStep >= steps) {
-        clearInterval(interval);
-        const result = STUDENT_DB[studentId.toUpperCase().trim()];
-        setStudentResult(result || null);
-        setView("result");
-        setTimeout(() => {
-          document
-            .getElementById("archive-section")
-            ?.scrollIntoView({ behavior: "smooth", block: "center" });
-        }, 100);
-      }
-    }, intervalTime);
+    setLoginError("");
+    const result = await login(username, password);
+    if (!result.ok) {
+      setLoginError(result.error);
+      return;
+    }
+    navigate("/portal", { replace: true });
   };
 
-  const reset = () => {
-    setView("search");
-    setStudentId("");
-    setStudentResult(null);
+  const handleReset = (e: FormEvent) => {
+    e.preventDefault();
   };
 
   return (
-    <div className="landing-wrapper">
-      {/* Utility Nav */}
-      <div className="utility-nav">
-        <div className="container-wide utility-content">
-          <span className="utility-link">Campus location ▼</span>
-          <span className="utility-link">Quick links ▼</span>
-          <span className="utility-link apply-now" style={{ color: "white" }}>
-            Apply now
-          </span>
-        </div>
-      </div>
+    <div className="login-page">
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
 
-      {/* Main Header */}
-      <header className="main-header">
-        <div className="container-wide header-flex">
-          <img
-            src="/logo-removebg-preview.png"
-            alt="MIT Logo"
-            className="mit-logo"
-          />
-
-          <div
-            className="mobile-menu-toggle"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
+      <header className="login-header">
+        <div className="header-inner">
+          <button
+            type="button"
+            className="menu-toggle"
+            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+            {...ariaExpandedAttr(mobileMenuOpen)}
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              {isMenuOpen ? (
-                <>
-                  <line x1="18" y1="6" x2="6" y2="18"></line>
-                  <line x1="6" y1="6" x2="18" y2="18"></line>
-                </>
-              ) : (
-                <>
-                  <line x1="3" y1="12" x2="21" y2="12"></line>
-                  <line x1="3" y1="6" x2="21" y2="6"></line>
-                  <line x1="3" y1="18" x2="21" y2="18"></line>
-                </>
+            {mobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
+          </button>
+
+          <a href="/" className="header-logo" aria-label="Melbourne Institute of Technology home">
+            <img src="/logo-removebg-preview.png" alt="Melbourne Institute of Technology" />
+          </a>
+
+          <div className={`header-actions ${mobileMenuOpen ? "mobile-open" : ""}`}>
+            <div className="search-wrap">
+              <input type="search" placeholder="search" aria-label="Search" />
+              <SearchIcon />
+            </div>
+
+            <div className="header-dropdown">
+              <button
+                type="button"
+                className="header-dropdown-btn"
+                {...ariaExpandedAttr(campusOpen)}
+                onClick={() => {
+                  setCampusOpen(!campusOpen);
+                  setQuickLinksOpen(false);
+                }}
+              >
+                Campus location
+              </button>
+              {campusOpen && (
+                <ul className="header-dropdown-menu">
+                  <li>
+                    <button type="button" onClick={() => setCampusOpen(false)}>
+                      Melbourne Campus
+                    </button>
+                  </li>
+                  <li>
+                    <button type="button" onClick={() => setCampusOpen(false)}>
+                      Sydney Campus
+                    </button>
+                  </li>
+                </ul>
               )}
-            </svg>
-          </div>
+            </div>
 
-          <nav className={`nav-links ${isMenuOpen ? "mobile-active" : ""}`}>
-            <span className="nav-item">Courses</span>
-            <span className="nav-item">How to apply</span>
-            <span className="nav-item">Entry requirements</span>
-            <span className="nav-item">Scholarships</span>
-            <span className="nav-item">Contact us</span>
-          </nav>
+            <div className="header-dropdown">
+              <button
+                type="button"
+                className="header-dropdown-btn"
+                {...ariaExpandedAttr(quickLinksOpen)}
+                onClick={() => {
+                  setQuickLinksOpen(!quickLinksOpen);
+                  setCampusOpen(false);
+                }}
+              >
+                Quick links
+              </button>
+              {quickLinksOpen && (
+                <ul className="header-dropdown-menu">
+                  <li>
+                    <a href="#">Library</a>
+                  </li>
+                  <li>
+                    <a href="#">AMS</a>
+                  </li>
+                </ul>
+              )}
+            </div>
 
-          <div className="header-search">
-            <input type="text" placeholder="Search..." />
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="11" cy="11" r="8"></circle>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
+            <button type="button" className="btn-apply">
+              Apply Now
+            </button>
           </div>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="hero-banner">
-        <div className="hero-overlay"></div>
-        <div className="container-wide">
-          <div className="scholarship-card">
-            <h2>Equity and Access</h2>
-            <h3>Scholarships</h3>
-            <button className="btn-red">LEARN MORE ›</button>
-          </div>
-        </div>
-      </section>
-
-      {/* Quick Action Tabs */}
-      <section className="status-tabs">
-        <div className="container-wide tabs-flex">
-          <div className="tab-item">
-            <div className="tab-icon">🏛️</div>
-            <div>DOMESTIC STUDENT</div>
-          </div>
-          <div className="tab-item">
-            <div className="tab-icon">🌏</div>
-            <div>INTERNATIONAL STUDENT</div>
-          </div>
-          <div className="tab-item">
-            <div className="tab-icon">💡</div>
-            <div>NON-AWARD STUDENT</div>
-          </div>
-          <div className="tab-item">
-            <div className="tab-icon">🎓</div>
-            <div>RESEARCH</div>
-          </div>
-        </div>
-      </section>
-
-      {/* Find Your Course */}
-      <section className="mit-section">
-        <div className="container-wide">
-          <h2 className="section-title">
-            Find your <span>course</span>
-          </h2>
-          <p
-            style={{
-              textAlign: "center",
-              color: "#666",
-              marginBottom: "40px",
-              maxWidth: "700px",
-              margin: "0 auto 40px",
-            }}
+      <main id="main-content" className="login-main">
+        <div className="login-tabs" role="tablist">
+          <button
+            type="button"
+            role="tab"
+            {...ariaSelectedAttr(activeTab === "login")}
+            className={`login-tab ${activeTab === "login" ? "active" : ""}`}
+            onClick={() => setActiveTab("login")}
           >
-            We're a small institute with big dreams. Find out where you want to
-            go and our supportive, intimate environment will help you get there.
-          </p>
-
-          <div className="course-grid">
-            {[
-              { name: "Accounting", icon: "📊" },
-              { name: "Business Analytics", icon: "📈" },
-              { name: "Cyber Security", icon: "🔒" },
-              { name: "Data Analytics", icon: "📂" },
-              { name: "Management", icon: "👥" },
-              { name: "Network", icon: "🌐" },
-              { name: "Marketing and Digital Communications", icon: "📱" },
-              { name: "Networking", icon: "🔌" },
-              { name: "Software Engineering", icon: "💻" },
-              { name: "Cloud Computing", icon: "☁️" },
-              { name: "Visual Effects and Animation", icon: "🎨" },
-              { name: "Engineering", icon: "⚙️" },
-              { name: "Project Management", icon: "📝" },
-              { name: "Information Technology", icon: "🖥️" },
-              { name: "Telecommunications Engineering", icon: "📡" },
-              { name: "Higher Education", icon: "🎓" },
-            ].map((course, i) => (
-              <div key={i} className="course-item">
-                <div className="course-icon-wrapper">
-                  <div className="course-icon">{course.icon}</div>
-                </div>
-                <div className="course-name">{course.name}</div>
-              </div>
-            ))}
-          </div>
+            <LockIcon />
+            Log in
+          </button>
+          <button
+            type="button"
+            role="tab"
+            {...ariaSelectedAttr(activeTab === "reset")}
+            className={`login-tab ${activeTab === "reset" ? "active" : ""}`}
+            onClick={() => setActiveTab("reset")}
+          >
+            <LockIcon />
+            Reset your password
+          </button>
         </div>
-      </section>
 
-      {/* Result Archive Section (Restored to Previous UI) */}
-      <section
-        id="archive-section"
-        className="mit-section"
-        style={{ background: "#f8fafc", padding: "40px 0" }}
-      >
-        <div className="mit-container">
-          <div className="archive-header">
-            <div className="logo-section">
-              <img
-                src="/logo-removebg-preview.png"
-                alt="Melbourne Institute of Technology Logo"
-                className="mit-logo"
-              />
-            </div>
+        <div className="login-form-panel">
+          {!authReady ? (
+            <p className="form-hint">Loading…</p>
+          ) : activeTab === "login" ? (
+            <form onSubmit={handleLogin}>
+              {loginError && <div className="auth-error">{loginError}</div>}
+              <div className="form-group">
+                <label htmlFor="username" className="form-label">
+                  <UserIcon />
+                  Username <span className="required">*</span>
+                </label>
+                <input
+                  id="username"
+                  type="text"
+                  className="form-input"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  autoComplete="username"
+                  required
+                />
+                <p className="form-hint">
+                  Enter your Melbourne Institute of Technology username.
+                </p>
+              </div>
 
+              <div className="form-group">
+                <label htmlFor="password" className="form-label">
+                  <LockIcon />
+                  Password <span className="required">*</span>
+                </label>
+                <input
+                  id="password"
+                  type="password"
+                  className="form-input"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="current-password"
+                  required
+                />
+                <p className="form-hint">
+                  Enter the password that accompanies your username.
+                </p>
+              </div>
+
+              <button type="submit" className="btn-login">
+                Log in
+              </button>
+              <p className="auth-link-row">
+                New student? <Link to="/signup">Create an account</Link>
+              </p>
+            </form>
+          ) : (
+            <form onSubmit={handleReset} className="reset-panel">
+              <p>
+                Enter your username or email address and we will send you instructions
+                on how to reset your password.
+              </p>
+              <div className="form-group form-group-first">
+                <label htmlFor="reset-email" className="form-label">
+                  <UserIcon />
+                  Username or email address <span className="required">*</span>
+                </label>
+                <input
+                  id="reset-email"
+                  type="text"
+                  className="form-input"
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <button type="submit" className="btn-login">
+                Reset password
+              </button>
+            </form>
+          )}
+        </div>
+      </main>
+
+      <nav className="sub-nav" aria-label="Quick actions">
+        <div className="sub-nav-inner">
+          <a href="#" className="sub-nav-item whatsapp">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+            </svg>
+            Chat with us
+          </a>
+          <a href="#" className="sub-nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+            Enquire now
+          </a>
+          <a href="#" className="sub-nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Download student guide
+          </a>
+        </div>
+      </nav>
+
+      <footer className="footer-red">
+        <div className="footer-red-inner">
+          <div className="footer-brand">
+            <img src="/logo-removebg-preview.png" alt="" />
+          </div>
+
+          <FooterLinks title="Current Students" items={CURRENT_STUDENTS} />
+          <FooterLinks title="Study With Us" items={STUDY_WITH_US} />
+          <FooterLinks title="Information About" items={INFORMATION_ABOUT} />
+
+          <div className="footer-col">
+            <h3>Connect with Us</h3>
             <div className="social-icons">
-              <div className="icon-circle">
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <line x1="2" y1="12" x2="22" y2="12"></line>
-                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+              <a href="#" aria-label="Facebook">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
                 </svg>
-              </div>
-              <div className="icon-circle">
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                >
-                  <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+              </a>
+              <a href="#" aria-label="Instagram">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="2" y="2" width="20" height="20" rx="5" />
+                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                  <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
                 </svg>
-              </div>
-              <div className="icon-circle">
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                  <polyline points="22,6 12,13 2,6"></polyline>
+              </a>
+              <a href="#" aria-label="WhatsApp">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
                 </svg>
-              </div>
-              <div className="icon-circle">
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
-                  <line x1="12" y1="18" x2="12.01" y2="18"></line>
+              </a>
+              <a href="#" aria-label="LinkedIn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2zM4 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" />
                 </svg>
-              </div>
+              </a>
+              <a href="#" aria-label="YouTube">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19.13C5.12 19.56 12 19.56 12 19.56s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.43zM9.75 15.02V8.48l6.35 3.27-6.35 3.27z" />
+                </svg>
+              </a>
             </div>
 
-            <h1 className="archive-title">Result Archive</h1>
-          </div>
-
-          <div className="main-card">
-            {view === "search" && (
-              <div className="search-box">
-                <div className="input-header">
-                  Student ID / Registration No{" "}
-                  <span style={{ color: "red" }}>*</span>
-                </div>
-                <div className="input-body">
-                  <form onSubmit={handleSearch} className="search-form">
-                    <input
-                      type="text"
-                      className="archive-input"
-                      placeholder="Enter Your Input"
-                      value={studentId}
-                      onChange={(e) => setStudentId(e.target.value)}
-                      required
-                    />
-                    <button type="submit" className="archive-button">
-                      Search
-                    </button>
-                  </form>
-                </div>
-              </div>
-            )}
-
-            {view === "loading" && (
-              <div className="loader-container">
-                <div className="loading-circle"></div>
-                <div className="loading-progress">
-                  <div
-                    className="progress-bar"
-                    style={{
-                      width: `${progress}%`,
-                      transition: "width 0.1s linear",
-                    }}
-                  ></div>
-                </div>
-              </div>
-            )}
-
-            {view === "result" && (
-              <div className="result-box">
-                <div className="input-header">
-                  Student ID / Registration No{" "}
-                  <span style={{ color: "red" }}>*</span>
-                </div>
-                <div className="input-body" style={{ marginBottom: "20px" }}>
-                  <div className="search-form">
-                    <input
-                      type="text"
-                      className="archive-input"
-                      value={studentId}
-                      readOnly
-                    />
-                    <button className="archive-button" onClick={reset}>
-                      Search
-                    </button>
-                  </div>
-                </div>
-
-                {studentResult ? (
-                  <>
-                    <div className="info-header">Student Information</div>
-                    <div
-                      className="result-table-container"
-                      style={{ margin: "0 20px 25px 20px" }}
-                    >
-                      <table className="result-table">
-                        <tbody>
-                          <tr>
-                            <td className="label-cell">Student ID</td>
-                            <td className="value-cell">{studentResult.id}</td>
-                          </tr>
-                          <tr>
-                            <td className="label-cell">Registration No</td>
-                            <td className="value-cell">
-                              {studentResult.regNo}
-                            </td>
-                          </tr>
-                          <tr>
-                            <td className="label-cell">Student Name</td>
-                            <td
-                              className="value-cell"
-                              style={{ fontWeight: "bold" }}
-                            >
-                              {studentResult.name}
-                            </td>
-                          </tr>
-                          <tr>
-                            <td className="label-cell">Department</td>
-                            <td className="value-cell">
-                              {studentResult.department}
-                            </td>
-                          </tr>
-                          <tr>
-                            <td className="label-cell">Degree Awarded</td>
-                            <td className="value-cell">
-                              {studentResult.degree}
-                            </td>
-                          </tr>
-                          <tr>
-                            <td className="label-cell">CGPA</td>
-                            <td
-                              className="value-cell"
-                              style={{ fontWeight: "600", color: "#2D3748" }}
-                            >
-                              {studentResult.cgpa}
-                            </td>
-                          </tr>
-                          <tr>
-                            <td className="label-cell">Passing Year</td>
-                            <td className="value-cell">
-                              {studentResult.passingYear}
-                            </td>
-                          </tr>
-                          {studentResult.graduationDate && (
-                            <tr>
-                              <td className="label-cell">Graduation Date</td>
-                              <td className="value-cell">
-                                {studentResult.graduationDate}
-                              </td>
-                            </tr>
-                          )}
-                          <tr>
-                            <td className="label-cell">Status</td>
-                            <td
-                              className="value-cell status-passed"
-                              style={{ color: "green", fontWeight: "bold" }}
-                            >
-                              {studentResult.status}
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  </>
-                ) : (
-                  <div style={{ textAlign: "center", padding: "40px 0" }}>
-                    <div style={{ fontSize: "50px", marginBottom: "20px" }}>
-                      🔍
-                    </div>
-                    <h2 style={{ color: "var(--primary-red)" }}>
-                      No Result Found
-                    </h2>
-                    <p style={{ color: "#718096" }}>
-                      The ID "{studentId}" does not exist in our archive.
-                    </p>
-                  </div>
-                )}
-                <div
-                  className="back-link"
-                  onClick={reset}
-                  style={{ padding: "0 20px 20px" }}
-                >
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    style={{ marginRight: "8px" }}
-                  >
-                    <line x1="19" y1="12" x2="5" y2="12"></line>
-                    <polyline points="12 19 5 12 12 5"></polyline>
-                  </svg>
-                  Back to Search
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* Why Study */}
-      <section className="mit-section">
-        <div className="container-wide">
-          <h2 className="section-title">
-            Why <span>study</span> at MIT
-          </h2>
-          <div className="benefits-grid">
-            <div className="benefit-card">
-              <h4>Personalised support</h4>
-              <p>
-                You'll fill our coffee lounge and our hearts, we don't have huge
-                crowds so we can support you individually. We'll encourage you
-                to step out of your comfort zone and find that amazing version
-                of you.
-              </p>
-            </div>
-            <div className="benefit-card">
-              <h4>Student support that goes the extra mile</h4>
-              <p>
-                You can count on us to go the extra mile - from academic to
-                career help, our staff can assist with everything from finding a
-                doctor to finding work, making sure you can reach your maximum
-                potential at MIT.
-              </p>
-            </div>
-            <div className="benefit-card">
-              <h4>More part-skills development</h4>
-              <p>
-                MIT courses are designed with added value - it focuses on making
-                sure you are industry-ready when you graduate with industry
-                placement, hands-on learning and many more help along the
-                journey.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* News & Events */}
-      <section className="mit-section" style={{ background: "#f8fafc" }}>
-        <div className="container-wide">
-          <h2 className="section-title">
-            News and <span>Events</span>
-          </h2>
-          <div className="news-grid">
-            <div className="news-card">
-              <img src="/news-1.png" alt="Momo Fest" className="news-img" />
-              <div className="news-body">
-                <span className="news-tag">NEWS</span>
-                <h3 className="news-title">
-                  MIT Supports MOMO Fest 2024 - Strategic Corporate Social
-                  Responsibility Initiative
-                </h3>
-                <p className="news-date">March 2024</p>
-                <span className="read-more">Learn more ›</span>
-              </div>
-            </div>
-            <div className="news-card">
-              <img src="/news-2.png" alt="White Ribbon" className="news-img" />
-              <div className="news-body">
-                <span className="news-tag">EVENTS</span>
-                <h3 className="news-title">
-                  White Ribbon Awareness Day: Promoting Safety and Equality
-                </h3>
-                <p className="news-date">April 2024</p>
-                <span className="read-more">Join event ›</span>
-              </div>
-            </div>
-            <div className="news-card">
-              <img
-                src="/logo-removebg-preview.png"
-                alt="MIT status"
-                className="news-img"
-                style={{
-                  objectFit: "contain",
-                  padding: "20px",
-                  background: "#eee",
-                }}
-              />
-              <div className="news-body">
-                <span className="news-tag">NEWS</span>
-                <h3 className="news-title">
-                  Melbourne Institute of Technology (MIT) Achieves
-                  Self-Accrediting Authority Status
-                </h3>
-                <p className="news-date">January 2024</p>
-                <span className="read-more">Read details ›</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="mit-footer">
-        <div className="container-wide">
-          <div className="footer-grid">
-            <div className="footer-col">
-              <img
-                src="/logo-removebg-preview.png"
-                alt="Footer Logo"
-                className="footer-logo"
-              />
-              <p
-                style={{ fontSize: "14px", lineHeight: "1.6", opacity: "0.8" }}
+            <div className="campus-tabs">
+              <button
+                type="button"
+                className={`campus-tab ${activeCampus === "melbourne" ? "active" : ""}`}
+                onClick={() => setActiveCampus("melbourne")}
               >
-                Melbourne Institute of Technology provides industry-relevant
-                education in a supportive environment.
+                Melbourne
+              </button>
+              <button
+                type="button"
+                className={`campus-tab ${activeCampus === "sydney" ? "active" : ""}`}
+                onClick={() => setActiveCampus("sydney")}
+              >
+                Sydney
+              </button>
+            </div>
+
+            <div className="contact-block">
+              <p>
+                <strong>Address</strong>
+                {campus.address}
+              </p>
+              <p>
+                <strong>Phone</strong>
+                {campus.phone}
+              </p>
+              <p>
+                <strong>Email</strong>
+                <a href={`mailto:${campus.email}`}>{campus.email}</a>
               </p>
             </div>
-            <div className="footer-col">
-              <h5>Quick Links</h5>
-              <ul className="footer-links">
-                <li>Courses</li>
-                <li>How to apply</li>
-                <li>Entry requirements</li>
-                <li>Scholarships</li>
-                <li>Contact us</li>
-              </ul>
-            </div>
-            <div className="footer-col">
-              <h5>Future Students</h5>
-              <ul className="footer-links">
-                <li>Domestic</li>
-                <li>International</li>
-                <li>Study at MIT Sydney</li>
-                <li>Study at MIT Melbourne</li>
-              </ul>
-            </div>
-            <div className="footer-col">
-              <h5>Connect</h5>
-              <div style={{ display: "flex", gap: "15px", marginTop: "10px" }}>
-                <span style={{ cursor: "pointer" }}>Facebook</span>
-                <span style={{ cursor: "pointer" }}>LinkedIn</span>
-                <span style={{ cursor: "pointer" }}>Twitter</span>
-              </div>
-            </div>
           </div>
-          <div className="footer-bottom">
-            &copy; 2024 Melbourne Institute of Technology. All Rights Reserved.
-            | CRICOS Provider Code: 01545C
+
+          <div className="footer-legal-links">
+            <a href="#">Copyright</a>
+            <a href="#">Disclaimer</a>
+            <a href="#">Privacy</a>
+            <a href="#">Accessibility</a>
           </div>
         </div>
       </footer>
+
+      <footer className="footer-dark">
+        <div className="footer-dark-inner">
+          <div className="acknowledgement">
+            <h4>Acknowledgement of country</h4>
+            <p>
+              We work and learn on the lands of the Wurundjeri people of the Kulin
+              Nation and the Gadigal people of the Eora Nation, who have been
+              custodians of this land for thousands of years. We acknowledge and pay
+              our respects to their Elders past, present and emerging.
+            </p>
+          </div>
+
+          <div className="footer-bottom-row">
+            <p>
+              Melbourne Institute of Technology Pty Ltd
+              <br />
+              ABN: 20 072 324 755
+              <br />
+              CRICOS Provider No: 01545C, 03245K (NSW)
+              <br />
+              TEQSA Provider Identification Number: 12138
+            </p>
+            <p>
+              Copyright: Melbourne Institute of Technology, 2026
+              <br />
+              Institute Of Higher Education
+              <br />
+              Authorised by: Corporate &amp; Legal Department
+              <br />
+              Content coordinator: Systems Development Division
+            </p>
+          </div>
+        </div>
+      </footer>
+
+      <button
+        type="button"
+        className={`scroll-top-btn ${showScrollTop ? "visible" : ""}`}
+        aria-label="Scroll to top"
+        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z" />
+        </svg>
+      </button>
     </div>
   );
 }
