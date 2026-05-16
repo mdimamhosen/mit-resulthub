@@ -43,7 +43,7 @@ export default function PortalCourses() {
               </p>
               <h4 style={{ margin: "0 0 8px", fontSize: 14 }}>Course materials</h4>
               {courseMaterials.length === 0 ? (
-                <p style={{ color: "#666", fontSize: 14 }}>No materials uploaded yet.</p>
+                <p style={{ color: "var(--mit-text-muted)", fontSize: 14 }}>No materials uploaded yet.</p>
               ) : (
                 <ul className="material-list">
                   {courseMaterials.map((m) => (

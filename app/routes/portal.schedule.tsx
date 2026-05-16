@@ -35,7 +35,7 @@ export default function PortalSchedule() {
             <h4>{day}</h4>
             {items.map((s) => (
               <div key={s.id} className="routine-item">
-                <strong>
+                <strong style={{ color: "var(--mit-red)" }}>
                   {s.startTime} – {s.endTime}
                 </strong>
                 <br />

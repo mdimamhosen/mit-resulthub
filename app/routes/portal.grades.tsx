@@ -50,7 +50,7 @@ export default function PortalGrades() {
         return (
           <div key={sem} className="portal-panel">
             <div className="portal-panel-header">
-              {sem} — Semester GPA: {sgpa.toFixed(2)}
+              {sem} — <span style={{ color: "var(--mit-red)" }}>GPA: {sgpa.toFixed(2)}</span>
             </div>
             <table className="portal-table">
               <thead>

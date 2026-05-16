@@ -70,7 +70,7 @@ export default function Signup() {
         </div>
       </header>
 
-      <main className="login-main" style={{ maxWidth: 640 }}>
+      <main className="login-main auth-main-container">
         <h1 className="portal-page-title" style={{ marginTop: 24 }}>
           Create student account
         </h1>

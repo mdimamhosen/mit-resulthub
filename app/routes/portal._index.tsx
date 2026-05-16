@@ -71,7 +71,7 @@ export default function PortalDashboard() {
         </div>
         <div className="portal-card">
           <h3>Overdue</h3>
-          <p className="stat" style={{ color: overdue.length ? "#c4191f" : undefined }}>
+          <p className="stat" style={{ color: overdue.length ? "var(--mit-red)" : "inherit" }}>
             {overdue.length}
           </p>
         </div>
@@ -80,7 +80,7 @@ export default function PortalDashboard() {
       <div className="portal-panel">
         <div className="portal-panel-header">Upcoming deadlines</div>
         {pending.length === 0 ? (
-          <p style={{ padding: 20, margin: 0, color: "#666" }}>No pending assignments.</p>
+          <p style={{ padding: 20, margin: 0, color: "var(--mit-text-muted)" }}>No pending assignments.</p>
         ) : (
           <table className="portal-table">
             <thead>

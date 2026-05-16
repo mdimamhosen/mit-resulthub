@@ -103,7 +103,7 @@ export default function PortalAssignments() {
                   <td>
                     <strong>{a.title}</strong>
                     <br />
-                    <small style={{ color: "#666" }}>{a.description.slice(0, 60)}…</small>
+                    <small style={{ color: "var(--mit-text-muted)" }}>{a.description.slice(0, 60)}…</small>
                   </td>
                   <td>{formatDeadline(a.deadline)}</td>
                   <td>
@@ -145,7 +145,7 @@ export default function PortalAssignments() {
         <div className="portal-panel">
           <div className="portal-panel-header">Submit assignment</div>
           <form
-            style={{ padding: 20 }}
+            style={{ padding: 24 }}
             onSubmit={(e) => handleSubmit(e, uploadFor)}
           >
             <div className="form-row">

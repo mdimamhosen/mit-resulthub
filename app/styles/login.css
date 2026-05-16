@@ -1,11 +1,19 @@
 :root {
-  --mit-red: #e31e24;
-  --mit-red-dark: #c4191f;
-  --mit-footer-dark: #2b2b2b;
-  --mit-text: #333;
-  --mit-text-muted: #666;
-  --mit-border: #d9d9d9;
-  --mit-subnav-bg: #f5f5f5;
+  --mit-red: #d31d24;
+  --mit-red-dark: #b0181d;
+  --mit-red-light: #ffebec;
+  --mit-footer-dark: #1a1a1a;
+  --mit-text: #2d3436;
+  --mit-text-muted: #636e72;
+  --mit-border: #dfe6e9;
+  --mit-subnav-bg: #f8f9fa;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
+  --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .login-page {
@@ -101,9 +109,10 @@
   width: 180px;
   padding: 8px 36px 8px 12px;
   border: 1px solid var(--mit-border);
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   font-size: 14px;
   background: #f7f7f7;
+  transition: var(--transition);
 }
 
 .search-wrap input::placeholder {
@@ -145,16 +154,23 @@
 
 .header-dropdown-menu {
   position: absolute;
-  top: 100%;
+  top: calc(100% + 8px);
   right: 0;
-  min-width: 180px;
+  min-width: 200px;
   background: #fff;
   border: 1px solid var(--mit-border);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
   list-style: none;
-  margin: 4px 0 0;
-  padding: 8px 0;
+  margin: 0;
+  padding: 8px;
   z-index: 50;
+  animation: slideIn 0.2s ease-out;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .header-dropdown-menu li a,
@@ -180,12 +196,13 @@
   background: var(--mit-red);
   color: #fff;
   border: none;
-  padding: 10px 20px;
+  padding: 10px 24px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  transition: background 0.2s;
+  border-radius: var(--radius-sm);
+  transition: var(--transition);
 }
 
 .btn-apply:hover {
@@ -203,45 +220,57 @@
 
 .login-tabs {
   display: flex;
-  margin-top: 0;
-  border-bottom: 1px solid var(--mit-border);
+  margin-top: 40px;
+  gap: 12px;
+  border-bottom: none;
 }
 
 .login-tab {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 14px 24px;
+  gap: 10px;
+  padding: 12px 24px;
   font-size: 15px;
-  font-weight: 500;
-  border: none;
+  font-weight: 600;
+  border: 1px solid var(--mit-border);
   cursor: pointer;
   background: #fff;
   color: var(--mit-text);
-  border-bottom: 3px solid transparent;
-  margin-bottom: -1px;
-  transition: background 0.2s, color 0.2s;
-}
-
-.login-tab svg {
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
+  border-radius: var(--radius-md);
+  transition: var(--transition);
 }
 
 .login-tab.active {
   background: var(--mit-red);
   color: #fff;
-  border-bottom-color: var(--mit-red);
+  border-color: var(--mit-red);
+  box-shadow: 0 4px 12px rgba(211, 29, 36, 0.2);
 }
 
 .login-tab:not(.active):hover {
-  background: #fafafa;
+  background: #f1f2f6;
+  border-color: var(--mit-red);
+  color: var(--mit-red);
 }
 
 .login-form-panel {
-  padding: 32px 0 40px;
-  max-width: 640px;
+  padding: 40px;
+  max-width: 600px;
+  background: #fff;
+  border: 1px solid var(--mit-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  margin-top: 40px;
+  transition: var(--transition);
+}
+
+.auth-main-container {
+  max-width: 640px !important;
+  margin-bottom: 40px;
+}
+
+.login-form-panel:hover {
+  box-shadow: var(--shadow-lg);
 }
 
 .form-group {
@@ -271,11 +300,12 @@
 .form-input {
   width: 100%;
   max-width: 480px;
-  padding: 10px 12px;
+  padding: 12px 16px;
   font-size: 15px;
   border: 1px solid var(--mit-border);
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   background: #fff;
+  transition: var(--transition);
 }
 
 .form-input:focus {
@@ -295,16 +325,20 @@
   background: var(--mit-red);
   color: #fff;
   border: none;
-  padding: 12px 32px;
+  padding: 12px 36px;
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
   margin-top: 8px;
-  transition: background 0.2s;
+  border-radius: var(--radius-sm);
+  transition: var(--transition);
+  box-shadow: 0 4px 6px rgba(211, 29, 36, 0.2);
 }
 
 .btn-login:hover {
   background: var(--mit-red-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 12px rgba(211, 29, 36, 0.3);
 }
 
 .auth-error {
@@ -312,7 +346,7 @@
   color: #721c24;
   padding: 12px 16px;
   margin-bottom: 16px;
-  border-radius: 4px;
+  border-radius: var(--radius-md);
   font-size: 14px;
 }
 
@@ -579,7 +613,7 @@
   background: var(--mit-red);
   color: #fff;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -624,13 +658,15 @@
 
   .header-actions {
     order: 3;
-    width: 100%;
-    margin-left: 0;
+    width: calc(100% + 32px);
+    margin: 12px -16px 0;
     flex-direction: column;
     align-items: stretch;
     display: none;
-    padding-top: 12px;
+    padding: 16px;
+    background: #fff;
     border-top: 1px solid var(--mit-border);
+    box-shadow: var(--shadow-md);
   }
 
   .header-actions.mobile-open {
@@ -639,6 +675,7 @@
 
   .search-wrap input {
     width: 100%;
+    height: 44px;
   }
 
   .header-dropdown {
@@ -648,8 +685,9 @@
   .header-dropdown-btn {
     width: 100%;
     justify-content: space-between;
-    padding: 12px 0;
-    border-bottom: 1px solid #eee;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--mit-border);
+    font-weight: 600;
   }
 
   .header-dropdown-menu {
@@ -682,7 +720,9 @@
   }
 
   .login-form-panel {
-    padding: 24px 0 32px;
+    padding: 24px;
+    margin-top: 24px;
+    border-radius: var(--radius-md);
   }
 
   .form-input {
@@ -712,11 +752,20 @@
 
 @media (max-width: 480px) {
   .header-logo img {
-    height: 40px;
+    height: 34px;
   }
 
   .login-tab {
     font-size: 14px;
     padding: 12px 16px;
+  }
+  
+  .header-inner {
+    padding: 8px 12px;
+  }
+  
+  .portal-page-title {
+    font-size: 20px;
+    margin-top: 16px;
   }
 }

@@ -22,7 +22,7 @@ export default function PortalNotices() {
 
       <div className="portal-panel">
         {notices.length === 0 ? (
-          <p style={{ padding: 20, margin: 0, color: "#666" }}>No notices at this time.</p>
+          <p style={{ padding: 24, margin: 0, color: "var(--mit-text-muted)" }}>No notices at this time.</p>
         ) : (
           notices.map((n) => (
             <article

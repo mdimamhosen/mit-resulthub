@@ -18,8 +18,8 @@ import type {
   User,
 } from "./types";
 
-const SEED_FLAG = "mit_portal_seeded_v1";
-const PROFILE_SYNC_KEY = "mit_profile_sync_v2";
+const SEED_FLAG = "mit_portal_seeded_v3";
+const PROFILE_SYNC_KEY = "mit_profile_sync_v3";
 
 export const DEMO_USER = MAHEDI_STUDENT;
 
@@ -42,7 +42,7 @@ export function buildSoftwareEngineeringGrades(userId: string): Grade[] {
     {
       id: uid(),
       userId,
-      semester: "Semester 2, 2025",
+      semester: "Semester 2, 2026",
       courseCode: "MIT401",
       courseName: "Software Engineering Capstone",
       credit: 4,
@@ -54,7 +54,7 @@ export function buildSoftwareEngineeringGrades(userId: string): Grade[] {
     {
       id: uid(),
       userId,
-      semester: "Semester 2, 2025",
+      semester: "Semester 2, 2026",
       courseCode: "MIT402",
       courseName: "Advanced Software Design",
       credit: 4,
@@ -66,7 +66,7 @@ export function buildSoftwareEngineeringGrades(userId: string): Grade[] {
     {
       id: uid(),
       userId,
-      semester: "Semester 1, 2025",
+      semester: "Semester 1, 2026",
       courseCode: "MIT301",
       courseName: "Full Stack Development",
       credit: 4,
@@ -78,7 +78,7 @@ export function buildSoftwareEngineeringGrades(userId: string): Grade[] {
     {
       id: uid(),
       userId,
-      semester: "Semester 1, 2025",
+      semester: "Semester 1, 2026",
       courseCode: "MIT302",
       courseName: "Cloud & Distributed Systems",
       credit: 3,
@@ -195,7 +195,7 @@ export function buildStudentSeed(userId: string, _fullName: string) {
       courseCode: "MIT303",
       title: "Security Audit Lab",
       description: "Complete penetration testing lab worksheet and findings summary.",
-      deadline: daysFromNow(-2),
+      deadline: "2025-11-20T23:59:59.000Z",
       maxMarks: 20,
     },
     {
@@ -205,7 +205,7 @@ export function buildStudentSeed(userId: string, _fullName: string) {
       courseCode: "MIT210",
       title: "Database Design Assignment",
       description: "ER diagram, normalisation, and SQL implementation.",
-      deadline: daysFromNow(18),
+      deadline: "2025-11-15T23:59:59.000Z",
       maxMarks: 35,
     },
   ];
