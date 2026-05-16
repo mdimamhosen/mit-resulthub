@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router";
 import { clearSession } from "../lib/auth";
 import type { Session } from "../lib/types";
@@ -74,6 +75,10 @@ const NAV = [
 
 export function PortalShell({ session }: { session: Session }) {
   const navigate = useNavigate();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const toggleMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
+  const closeMenu = () => setIsMobileMenuOpen(false);
 
   const logout = () => {
     clearSession();
@@ -83,33 +88,53 @@ export function PortalShell({ session }: { session: Session }) {
   return (
     <div className="portal-app">
       <header className="portal-topbar">
+        <button 
+          className="mobile-menu-toggle" 
+          onClick={toggleMenu}
+          aria-label="Toggle menu"
+        >
+          {isMobileMenuOpen ? (
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+          )}
+        </button>
         <a href="/portal" className="portal-topbar-brand">
           <img src="/logo-removebg-preview.png" alt="MIT" />
-          <span>
+          <span className="brand-text">
             Student Portal
             <br />
-            <small style={{ fontWeight: 400, opacity: 0.9 }}>
+            <small className="institution-name">
               Melbourne Institute of Technology
             </small>
           </span>
         </a>
         <div className="portal-topbar-user">
-          <span>
+          <span className="user-info">
             {session.fullName} ({session.studentId})
           </span>
-          <button type="button" onClick={logout}>
+          <button type="button" onClick={logout} className="logout-btn">
             Log out
           </button>
         </div>
       </header>
 
-      <div className="portal-body">
-        <nav className="portal-sidebar" aria-label="Portal navigation">
+      <div className={`portal-body ${isMobileMenuOpen ? 'menu-open' : ''}`}>
+        {isMobileMenuOpen && <div className="menu-overlay" onClick={closeMenu} />}
+        <nav className={`portal-sidebar ${isMobileMenuOpen ? 'open' : ''}`} aria-label="Portal navigation">
           {NAV.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               end={item.end}
+              onClick={closeMenu}
               className={({ isActive }) =>
                 `portal-nav-link${isActive ? " active" : ""}`
               }
