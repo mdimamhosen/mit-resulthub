@@ -18,8 +18,8 @@ import type {
   User,
 } from "./types";
 
-const SEED_FLAG = "mit_portal_seeded_v3";
-const PROFILE_SYNC_KEY = "mit_profile_sync_v3";
+const SEED_FLAG = "mit_portal_seeded_v4";
+const PROFILE_SYNC_KEY = "mit_profile_sync_v4";
 
 export const DEMO_USER = MAHEDI_STUDENT;
 
@@ -175,7 +175,7 @@ export function buildStudentSeed(userId: string, _fullName: string) {
       courseCode: "MIT301",
       title: "Software Architecture Report",
       description: "Submit a 2500-word report on microservices architecture patterns.",
-      deadline: daysFromNow(5),
+      deadline: "2025-12-05T23:59:59.000Z",
       maxMarks: 30,
     },
     {
@@ -185,7 +185,7 @@ export function buildStudentSeed(userId: string, _fullName: string) {
       courseCode: "MIT302",
       title: "Docker Deployment Project",
       description: "Containerise a sample app and deploy using Docker Compose.",
-      deadline: daysFromNow(12),
+      deadline: "2025-12-12T23:59:59.000Z",
       maxMarks: 25,
     },
     {
@@ -195,7 +195,7 @@ export function buildStudentSeed(userId: string, _fullName: string) {
       courseCode: "MIT303",
       title: "Security Audit Lab",
       description: "Complete penetration testing lab worksheet and findings summary.",
-      deadline: "2025-11-20T23:59:59.000Z",
+      deadline: "2025-12-20T23:59:59.000Z",
       maxMarks: 20,
     },
     {
@@ -205,7 +205,7 @@ export function buildStudentSeed(userId: string, _fullName: string) {
       courseCode: "MIT210",
       title: "Database Design Assignment",
       description: "ER diagram, normalisation, and SQL implementation.",
-      deadline: "2025-11-15T23:59:59.000Z",
+      deadline: "2025-12-15T23:59:59.000Z",
       maxMarks: 35,
     },
   ];
@@ -280,8 +280,25 @@ export async function initializeDatabase(): Promise<void> {
     await createUser(demoUser);
     const seed = buildStudentSeed(demoId, demoUser.fullName);
     await bulkSeed({ ...seed, notices: GLOBAL_NOTICES });
-  } else if ((await getNotices()).length === 0) {
-    await bulkSeed({ notices: GLOBAL_NOTICES });
+  } else {
+    // If upgrading to v4, recreate the assignments for the demo user
+    const db = await import("./database").then((m) => m.getDb());
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction("assignments", "readwrite");
+      tx.objectStore("assignments").clear();
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+    
+    const user = await getUserByUsername(demoUser.username);
+    if (user) {
+      const seed = buildStudentSeed(user.id, user.fullName);
+      await bulkSeed({ assignments: seed.assignments });
+    }
+
+    if ((await getNotices()).length === 0) {
+      await bulkSeed({ notices: GLOBAL_NOTICES });
+    }
   }
 
   localStorage.setItem(SEED_FLAG, "true");
